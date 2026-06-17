@@ -10,7 +10,7 @@ Changes:
 7. Unified subsample: keep all positives + stratified negative sampling
 8. Ablation extended to all 4 datasets
 """
-import sys, os, pickle, warnings, time, json, gc, gzip, argparse, itertools
+import sys, os, pickle, warnings, time, json, gc, gzip, argparse, itertools, random
 from pathlib import Path
 warnings.filterwarnings('ignore')
 os.environ['LOKY_MAX_CPU_COUNT'] = '4'
@@ -320,8 +320,7 @@ def graph_permutation_test(xt,adj,yt,train_mask,test_mask,d,hp,n_perm=GRAPH_PERM
         m=train_gnn(m,xt,adj_p,yt,trs_m,vs_m,ep=200,lr=hp['lr'],pa=30)
         r=eval_gnn(m,xt,adj_p,yt,test_mask)
         perm_f1s.append(r['f1']);del m;torch.cuda.empty_cache()
-    return real,np.mean(perm_f1s),np.std(perm_f1s)
-
+    return real,np.mean(perm_f1s),np.std(perm_f1s),perm_f1s
 # ==================== Run One Dataset ====================
 def run_one(name,loader):
     print("\n"+"="*60);print("  [%s]"%name);print("="*60)
