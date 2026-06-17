@@ -8,7 +8,7 @@ import numpy as np
 PROJECT_ROOT = os.environ.get("STAR_GNN_HOME", r"D:\cxdownload\大数据实训\code_sci")
 RESULTS_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(PROJECT_ROOT, "results", "benchmark"))
 os.makedirs(RESULTS_DIR, exist_ok=True)
-GRAPH_PATH = os.path.join(PROJECT_ROOT, "results", "graph_data_v2.pkl")
+GRAPH_PATH = os.path.join(PROJECT_ROOT, "data", "graph_data_v2.pkl")
 
 import torch, torch.nn as nn, torch.nn.functional as F
 from torch.optim import Adam
