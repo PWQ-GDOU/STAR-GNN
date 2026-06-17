@@ -237,7 +237,7 @@ def nested_hp_search(X,y,xt,yt,adj,n,d,outer_tr_idx,seed):
     def _search(grid, build_fn):
         all_combos=list(itertools.product(*grid.values()))
         n_take=min(len(all_combos),MAX_HP)
-        import random;random.seed(42)
+        random.seed(42)
         combos=random.sample(all_combos,n_take)
         keys=list(grid.keys())
         best,best_f=None,0
@@ -321,6 +321,7 @@ def graph_permutation_test(xt,adj,yt,train_mask,test_mask,d,hp,n_perm=GRAPH_PERM
         r=eval_gnn(m,xt,adj_p,yt,test_mask)
         perm_f1s.append(r['f1']);del m;torch.cuda.empty_cache()
     return real,np.mean(perm_f1s),np.std(perm_f1s),perm_f1s
+
 # ==================== Run One Dataset ====================
 def run_one(name,loader):
     print("\n"+"="*60);print("  [%s]"%name);print("="*60)
