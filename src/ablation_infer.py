@@ -6,9 +6,9 @@ warnings.filterwarnings('ignore')
 import numpy as np
 
 PROJECT_ROOT = os.environ.get("STAR_GNN_HOME", r"D:\cxdownload\大数据实训\code_sci")
-RESULTS_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(PROJECT_ROOT, "results", "benchmark"))
+RESULTS_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(PROJECT_ROOT, "results", "experiments_v2"))
 os.makedirs(RESULTS_DIR, exist_ok=True)
-GRAPH_PATH = os.path.join(PROJECT_ROOT, "data", "graph_data_v2.pkl")
+GRAPH_PATH = os.path.join(PROJECT_ROOT, "results", "graph_data_v2.pkl")
 
 import torch, torch.nn as nn, torch.nn.functional as F
 from torch.optim import Adam
@@ -114,7 +114,7 @@ def eval_gnn(m, x, adj, y, mask):
             'auc': roc_auc_score(yt, yr) if len(np.unique(yt)) > 1 else 0.5}
 
 # ================ Experiment ================
-skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_SEED)
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
 N_WARMUP = 50
 
 results = {d: {'xgb_f1': [], 'xgb_auc': [], 'xgb_time': [],
@@ -152,12 +152,12 @@ for n_dim in FEATURE_LEVELS:
         # XGBoost
         xgb = XGBClassifier(n_estimators=100, max_depth=6,
                             scale_pos_weight=(len(Ytr)-npos)/max(npos,1),
-                            random_state=42, verbosity=0)
-        t0 = time.time(); xgb.fit(Xtr, Ytr); train_time = time.time() - t0
+                            random_state=42, verbosity=0, device='cuda')
+        xgb.fit(Xtr, Ytr)
         for _ in range(N_WARMUP): _ = xgb.predict(Xte[:10])
         t0 = time.time()
-        for _ in range(100): _ = xgb.predict(Xte)
-        infer_time = (time.time() - t0) / 100 * 1000
+        for _ in range(200): _ = xgb.predict(Xte)
+        infer_time = (time.time() - t0) / 200 * 1000
         yp = xgb.predict(Xte); ypr = xgb.predict_proba(Xte)[:, 1]
         results[n_dim]['xgb_f1'].append(f1_score(Yte, yp, zero_division=0))
         results[n_dim]['xgb_auc'].append(roc_auc_score(Yte, ypr))
@@ -172,9 +172,9 @@ for n_dim in FEATURE_LEVELS:
             for _ in range(N_WARMUP): _ = m(ft, at)
             torch.cuda.synchronize()
             t0 = time.time()
-            for _ in range(100): _ = m(ft, at)
+            for _ in range(200): _ = m(ft, at)
             torch.cuda.synchronize()
-            gnn_time = (time.time() - t0) / 100 * 1000
+            gnn_time = (time.time() - t0) / 200 * 1000
         r = eval_gnn(m, feat_t, adj_norm, y_t, te_m)
         results[n_dim]['sage_f1'].append(r['f1']); results[n_dim]['sage_auc'].append(r['auc'])
         results[n_dim]['sage_time'].append(gnn_time)
@@ -238,7 +238,7 @@ ax2.set_xlabel('Number of Features'); ax2.set_ylabel('Inference Time (ms)')
 ax2.set_title('Inference Efficiency (SAGE/XGB = %.1fx)' % speedup); ax2.legend()
 
 plt.tight_layout()
-out_png = os.path.join(RESULTS_DIR, "ablation_crossover.png")
+out_png = os.path.join(RESULTS_DIR, "figure6_ablation_trajectory.png")
 plt.savefig(out_png, dpi=150, bbox_inches='tight'); plt.close()
 print("\nSaved:", out_png)
 
