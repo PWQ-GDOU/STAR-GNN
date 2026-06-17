@@ -20,7 +20,7 @@ os.environ['OMP_NUM_THREADS'] = '4'
 PROJECT_ROOT = Path(os.environ.get("STAR_GNN_HOME", r"D:\cxdownload\大数据实训\code_sci"))
 DATA_DIR = Path(os.environ.get("STAR_GNN_DATA", str(PROJECT_ROOT / "data")))
 RESULTS_DIR = Path(os.environ.get("STAR_GNN_RESULTS", str(PROJECT_ROOT / "results" / "benchmark_clean")))
-GRAPH_PATH = PROJECT_ROOT / "results" / "graph_data_v2.pkl"
+GRAPH_PATH = PROJECT_ROOT / "data" / "graph_data_v2.pkl"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 import torch, torch.nn as nn, torch.nn.functional as F
