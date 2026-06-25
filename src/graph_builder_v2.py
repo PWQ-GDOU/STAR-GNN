@@ -251,13 +251,50 @@ class StarSchemaGraphBuilderV2:
         print("[V2] Loading data...")
         files = ['base_info','annual_report_info','change_info','news_info',
                  'tax_info','other_info','entprise_info','entprise_evaluate']
+
+        # ── Required column contracts (fail fast with clear messages) ──
+        REQUIRED_COLS = {
+            'entprise_info':  ['id', 'label'],
+            'base_info':      ['regcap', 'reccap', 'opfrom', 'opto', 'empnum'],
+            'change_info':    ['id', 'bgxmdm'],
+            'news_info':      ['id', 'positive', 'negative'],
+            'tax_info':       ['id', 'zsxm_dm', 'se'],
+        }
+        OPTIONAL_FILES = ['annual_report_info', 'other_info', 'entprise_evaluate']
+
         for name in files:
-            path = os.path.join(self.data_dir, name+'.csv')
+            path = os.path.join(self.data_dir, name + '.csv')
             if os.path.exists(path):
-                self.dfs[name] = pd.read_csv(path)
-                print("  OK %-25s %s" % (name, str(self.dfs[name].shape)))
+                try:
+                    df = pd.read_csv(path)
+                except Exception as e:
+                    raise RuntimeError(f"Failed to parse {path}: {e}")
+                self.dfs[name] = df
+                print("  OK  %-25s %s" % (name, str(df.shape)))
+
+                # Validate critical columns
+                if name in REQUIRED_COLS:
+                    missing = [c for c in REQUIRED_COLS[name] if c not in df.columns]
+                    if missing:
+                        raise KeyError(
+                            f"{name}.csv is missing required columns: {missing}\n"
+                            f"  Expected: {REQUIRED_COLS[name]}\n"
+                            f"  Found:    {list(df.columns)[:20]}..."
+                        )
+            elif name not in OPTIONAL_FILES:
+                raise FileNotFoundError(
+                    f"Required CSV not found: {path}\n"
+                    f"  Place all 8 CSV files in {self.data_dir}/"
+                )
             else:
-                print("  MISS %s" % name)
+                print("  MISS %-25s (optional)" % name)
+
+        # Ensure entprise_info is loaded (it's required above, but double-check)
+        if 'entprise_info' not in self.dfs:
+            raise FileNotFoundError(
+                f"entprise_info.csv not found in {self.data_dir}/\n"
+                f"  This file is required — it contains enterprise IDs and labels."
+            )
 
         self.enterprise_ids = sorted(self.dfs['entprise_info']['id'].unique())
         self.id_to_idx = {eid: i for i, eid in enumerate(self.enterprise_ids)}

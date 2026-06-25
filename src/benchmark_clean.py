@@ -31,6 +31,7 @@ import torch, torch.nn as nn, torch.nn.functional as F
 from torch.optim import Adam
 import numpy as np, pandas as pd
 
+# Device: set at module load as fallback; main() may override from CLI --device/--no-cuda
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device:", device)
 
@@ -56,7 +57,43 @@ N_OUTER_FOLDS = 5
 N_INNER_FOLDS = 2
 N_SUBSAMPLE = 6000
 N_PERM = 20
-GRAPH_PERM_N = 10  # graph permutation tests
+GRAPH_PERM_N = 10
+KNN_K = 10
+
+
+def parse_args():
+    p = argparse.ArgumentParser(
+        description='STAR-GNN: Benchmark tabular vs GNN on star-schema data',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  python benchmark_clean.py                           # default: 3 seeds x 5 folds, all 4 datasets
+  python benchmark_clean.py --seeds 42                # single seed, faster
+  python benchmark_clean.py --datasets creditcard     # single dataset
+  python benchmark_clean.py --k 20 --no-cuda          # custom k-NN, CPU only
+  python benchmark_clean.py --subsample 4000          # smaller subsample for faster test
+        ''')
+    p.add_argument('--seeds', type=str, default='42,123,456',
+                   help='Comma-separated random seeds (default: 42,123,456)')
+    p.add_argument('--datasets', type=str, default='all',
+                   help='Datasets to run: all, enterprise, creditcard, adult, covtype (default: all)')
+    p.add_argument('--subsample', type=int, default=6000,
+                   help='Max samples per dataset (default: 6000)')
+    p.add_argument('--outer-folds', type=int, default=5,
+                   help='Outer CV folds (default: 5)')
+    p.add_argument('--inner-folds', type=int, default=2,
+                   help='Inner CV folds for HP search (default: 2)')
+    p.add_argument('--k', type=int, default=10, dest='knn_k',
+                   help='k-NN neighbors for graph construction (default: 10)')
+    p.add_argument('--perm', type=int, default=20,
+                   help='Permutation test trials (default: 20)')
+    p.add_argument('--graph-perm', type=int, default=10,
+                   help='Graph permutation trials (default: 10)')
+    p.add_argument('--no-cuda', action='store_true',
+                   help='Force CPU even if CUDA is available')
+    p.add_argument('--device', type=str, default='auto',
+                   help='torch device: auto/cuda/cpu (default: auto)')
+    return p.parse_args()  # graph permutation tests
 
 def t2n(t):
     if t.numel() == 0: return np.array([])
@@ -72,7 +109,8 @@ def compute_sparsity(X):
             'effective_rank': float(er),
             'category': 'sparse' if er < 0.25 else ('medium' if er < 0.55 else 'dense')}
 
-def build_knn_graph(X, k=10):
+def build_knn_graph(X, k=None):
+    if k is None: k = KNN_K
     n = len(X); k = min(k, n-1)
     Xs = StandardScaler().fit_transform(X.astype(np.float64))
     nn = NearestNeighbors(n_neighbors=k+1, metric='cosine', n_jobs=-1).fit(Xs)
@@ -408,16 +446,50 @@ def run_one(name,loader):
 
 # ==================== Main ====================
 def main():
+    # ── Parse CLI args and set globals (used by all downstream functions) ──
+    global SEEDS, N_OUTER_FOLDS, N_INNER_FOLDS, N_SUBSAMPLE, N_PERM, GRAPH_PERM_N, KNN_K
+    args = parse_args()
+    SEEDS = [int(s.strip()) for s in args.seeds.split(',')]
+    N_OUTER_FOLDS = args.outer_folds
+    N_INNER_FOLDS = args.inner_folds
+    N_SUBSAMPLE = args.subsample
+    N_PERM = args.perm
+    GRAPH_PERM_N = args.graph_perm
+    KNN_K = args.knn_k
+
+    # Device selection
+    global device  # module-level, used by GNNC/train_gnn/eval_gnn
+    if args.no_cuda:
+        device = torch.device('cpu')
+    elif args.device == 'auto':
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    else:
+        device = torch.device(args.device)
+
+    # Dataset selection
+    ALL_DS = [('Enterprise', load_enterprise), ('CreditCard', load_creditcard),
+              ('Adult', load_adult), ('Covtype', load_covtype)]
+    if args.datasets == 'all':
+        datasets = ALL_DS
+    else:
+        sel = {s.strip().lower() for s in args.datasets.split(',')}
+        datasets = [(n, l) for n, l in ALL_DS if n.lower() in sel]
+        if not datasets:
+            print(f"ERROR: no matching datasets. Available: {[d[0] for d in ALL_DS]}")
+            return
+
     # Global seed fix — ensures NumPy, Python random, and PyTorch are deterministic
-    random.seed(42)
-    np.random.seed(42)
-    torch.manual_seed(42)
+    random.seed(SEEDS[0])
+    np.random.seed(SEEDS[0])
+    torch.manual_seed(SEEDS[0])
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(42)
-    print("="*60)
-    print("  FINAL Benchmark (%d seeds × %d folds)"%(len(SEEDS),N_OUTER_FOLDS))
-    print("="*60)
-    datasets=[('Enterprise',load_enterprise),('CreditCard',load_creditcard),('Adult',load_adult),('Covtype',load_covtype)]
+        torch.cuda.manual_seed_all(SEEDS[0])
+
+    print("=" * 60)
+    print("  STAR-GNN Benchmark: %d seeds x %d folds | device=%s | k-NN=%d"
+          % (len(SEEDS), N_OUTER_FOLDS, device, KNN_K))
+    print("  Datasets: %s" % ', '.join(d[0] for d in datasets))
+    print("=" * 60)
     all_sm={};all_sp={};all_perm={}
     for ds_name,loader in datasets:
         try:
