@@ -123,6 +123,11 @@ STAR-GNN/
 ```bash
 git clone https://github.com/PWQ-GDOU/STAR-GNN.git
 cd STAR-GNN
+
+# Reproduce exact paper results (pinned versions)
+pip install -r requirements-lock.txt
+
+# Or install with relaxed version constraints
 pip install -r requirements.txt
 ```
 

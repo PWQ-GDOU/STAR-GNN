@@ -18,14 +18,20 @@ env/
 *.swp
 *.swo
 
-# Data files
+# Data files (keep directory structure, exclude actual data)
+data/*.csv
+data/*.pkl
+data/*.zip
+data/*.mat
+data/enterprise/
 data/benchmarks/
 *.zip
 *.mat
-data/creditcard.csv  # too large for GitHub (143MB), keep .gz version
 
 # Results
 results/*.pkl
+results/*.json
+results/benchmark_clean/
 results/experiments/
 results/benchmark/
 

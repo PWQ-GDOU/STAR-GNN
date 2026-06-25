@@ -1,0 +1,14 @@
+# STAR-GNN exact dependency pins (generated from verified working environment)
+# Install: pip install -r requirements-lock.txt
+#
+# For a more relaxed installation, use requirements.txt instead.
+
+torch==2.5.1
+numpy==2.4.6
+pandas==3.0.3
+scikit-learn==1.9.0
+scipy==1.17.1
+xgboost==3.2.0
+lightgbm==4.6.0
+matplotlib==3.11.0
+imbalanced-learn==0.14.2

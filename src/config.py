@@ -3,12 +3,11 @@ config.py — SCI 研究版全局配置
 """
 import os, json
 
-# ======== 路径 ========
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "code", "output")  # 复用原数据
-# 如果没有 preprocessed 则回退到原始 CSV
-RAW_DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), "data")  # 数据CSV目录
-OUTPUT_DIR = os.path.join(BASE_DIR, "results")
+# ======== Portable paths: env vars with repo-relative fallbacks ========
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # STAR-GNN/
+DATA_DIR = os.environ.get("STAR_GNN_DATA", os.path.join(BASE_DIR, "data"))
+RAW_DATA_DIR = DATA_DIR  # unified — both point to the same data/ directory
+OUTPUT_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(BASE_DIR, "results"))
 FIGURE_DIR = os.path.join(BASE_DIR, "figures")
 CHECKPOINT_DIR = os.path.join(OUTPUT_DIR, "checkpoints")
 RESULTS_DIR = os.path.join(OUTPUT_DIR, "logs")
@@ -73,10 +72,12 @@ MODEL_CONFIG = {
     "classifiers": ["XGBoost", "MLP"],
 }
 
-# ======== GPU ========
-DEVICE = "cuda"  # XGBoost device (3.x API)
-LGB_DEVICE = "gpu"
-TORCH_DEVICE = "cuda"
+# ======== GPU / CPU auto-detect ========
+import torch as _torch
+_HAS_CUDA = _torch.cuda.is_available()
+DEVICE = "cuda" if _HAS_CUDA else "cpu"      # XGBoost (3.x API)
+LGB_DEVICE = "gpu" if _HAS_CUDA else "cpu"    # LightGBM
+TORCH_DEVICE = "cuda" if _HAS_CUDA else "cpu" # PyTorch
 
 # ======== 实验矩阵 ========
 EXPERIMENTS = {

@@ -11,16 +11,23 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 warnings.filterwarnings('ignore')
 
-# 搜索结果数据目录
-import glob
-for p in glob.iglob(r'D:\cxdownload\**\base_info.csv', recursive=True):
-    d = os.path.dirname(p)
-    if os.path.exists(os.path.join(d, 'entprise_info.csv')):
-        DATA_DIR = d
-        break
+# ── Portable paths: use env vars, fall back to repo-relative ──
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # STAR-GNN/
 
-OUTPUT_DIR = r"D:\cxdownload\大数据实训\code_sci\results"
+# Data directory: first check STAR_GNN_DATA, then default to <repo>/data/
+DATA_DIR = os.environ.get("STAR_GNN_DATA", os.path.join(_REPO_ROOT, "data"))
+if not os.path.isdir(DATA_DIR):
+    # Last-resort fallback for legacy Windows setups (auto-detect CSV dir)
+    for p in glob.iglob(os.path.join(_REPO_ROOT, '**', 'base_info.csv'), recursive=True):
+        d = os.path.dirname(p)
+        if os.path.exists(os.path.join(d, 'entprise_info.csv')):
+            DATA_DIR = d
+            break
+
+OUTPUT_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(_REPO_ROOT, "results"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+print(f"[paths] DATA_DIR={DATA_DIR}")
+print(f"[paths] OUTPUT_DIR={OUTPUT_DIR}")
 
 # ============ 从 features.py 复制特征工程（自包含，不依赖外部 import）============
 
@@ -305,6 +312,11 @@ class StarSchemaGraphBuilderV2:
         # Standardize
         from sklearn.preprocessing import StandardScaler
         # === Label Leakage Mitigation ===
+        # ⚠️  WARNING: Jaccard graph is DEPRECATED for final experiments.           ⚠️
+        # ⚠️  The Jaccard change-code graph encodes label signal (high-risk          ⚠️
+        # ⚠️  enterprises share more high-risk change codes → label leakage).        ⚠️
+        # ⚠️  benchmark_clean.py REBUILDS the graph via k-NN cosine similarity.      ⚠️
+        # ⚠️  This file is kept ONLY for the 57-dim feature extraction pipeline.     ⚠️
         # change_info is used for BOTH graph topology (Jaccard edges)
         # and node features (n_high_risk_changes, etc.).
         # To prevent data leakage via graph structure, we exclude

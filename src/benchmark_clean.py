@@ -13,15 +13,19 @@ Changes:
 import sys, os, pickle, warnings, time, json, gc, gzip, argparse, itertools, random
 from pathlib import Path
 warnings.filterwarnings('ignore')
-os.environ['LOKY_MAX_CPU_COUNT'] = '4'
-os.environ['OMP_NUM_THREADS'] = '4'
+# Limit CPU parallelism to avoid oversubscription on shared machines.
+# Override with: export LOKY_MAX_CPU_COUNT=8 OMP_NUM_THREADS=8
+os.environ.setdefault('LOKY_MAX_CPU_COUNT', '4')
+os.environ.setdefault('OMP_NUM_THREADS', '4')
 
-# Configurable paths
-PROJECT_ROOT = Path(os.environ.get("STAR_GNN_HOME", r"D:\cxdownload\大数据实训\code_sci"))
-DATA_DIR = Path(os.environ.get("STAR_GNN_DATA", str(PROJECT_ROOT / "data")))
-RESULTS_DIR = Path(os.environ.get("STAR_GNN_RESULTS", str(PROJECT_ROOT / "results" / "benchmark_clean")))
-GRAPH_PATH = PROJECT_ROOT / "data" / "graph_data_v2.pkl"
+# ── Portable paths: use env vars, fall back to repo-relative ──
+_REPO_ROOT = Path(__file__).resolve().parent.parent  # STAR-GNN/
+PROJECT_ROOT = Path(os.environ.get("STAR_GNN_HOME", _REPO_ROOT))
+DATA_DIR = Path(os.environ.get("STAR_GNN_DATA", PROJECT_ROOT / "data"))
+RESULTS_DIR = Path(os.environ.get("STAR_GNN_RESULTS", PROJECT_ROOT / "results" / "benchmark_clean"))
+GRAPH_PATH = DATA_DIR / "graph_data_v2.pkl"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+print(f"[paths] PROJECT_ROOT={PROJECT_ROOT}")
 
 import torch, torch.nn as nn, torch.nn.functional as F
 from torch.optim import Adam
@@ -156,16 +160,14 @@ def eval_gnn(m,x,adj,y,mask):
 
 # ==================== Datasets ====================
 def load_enterprise():
+    """Load Enterprise data from pre-built feature pickle.
+    NOTE: The stored edge_index in the .pkl is a Jaccard graph (label-leaking).
+    We IGNORE it and rebuild a clean k-NN cosine-similarity graph from the 57-dim features,
+    matching the graph construction used for CreditCard/Adult/Covtype."""
     with open(GRAPH_PATH,'rb') as f: g=pickle.load(f)
     X=g['node_features'].copy().astype(np.float32);y=g['labels'].copy().astype(np.int64)
-    ei=g['edge_index']
-    adj=torch.sparse_coo_tensor(
-        torch.stack([torch.tensor(ei[0].tolist(),dtype=torch.long),
-                     torch.tensor(ei[1].tolist(),dtype=torch.long)]),
-        torch.ones(len(ei[0])),(len(y),len(y))).coalesce()
-    dg=torch.sparse.sum(adj,1).to_dense();dg[dg==0]=1
-    di=torch.arange(len(y))
-    adj_n=torch.sparse.mm(torch.sparse_coo_tensor(torch.stack([di,di]),1.0/dg,(len(y),len(y))),adj).coalesce()
+    # Rebuild graph from features (NOT from stored Jaccard edge_index)
+    adj_n = build_knn_graph(X)
     return X,y,"Enterprise",torch.tensor(X.tolist(),dtype=torch.float32),torch.tensor(y.tolist(),dtype=torch.long),adj_n
 
 def load_creditcard():
