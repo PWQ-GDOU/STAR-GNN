@@ -408,6 +408,12 @@ def run_one(name,loader):
 
 # ==================== Main ====================
 def main():
+    # Global seed fix — ensures NumPy, Python random, and PyTorch are deterministic
+    random.seed(42)
+    np.random.seed(42)
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(42)
     print("="*60)
     print("  FINAL Benchmark (%d seeds × %d folds)"%(len(SEEDS),N_OUTER_FOLDS))
     print("="*60)

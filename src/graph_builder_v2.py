@@ -18,11 +18,25 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # STAR
 DATA_DIR = os.environ.get("STAR_GNN_DATA", os.path.join(_REPO_ROOT, "data"))
 if not os.path.isdir(DATA_DIR):
     # Last-resort fallback for legacy Windows setups (auto-detect CSV dir)
+    found = False
     for p in glob.iglob(os.path.join(_REPO_ROOT, '**', 'base_info.csv'), recursive=True):
         d = os.path.dirname(p)
         if os.path.exists(os.path.join(d, 'entprise_info.csv')):
             DATA_DIR = d
+            found = True
             break
+    if not found:
+        msg = (
+            f"ERROR: Data directory not found.\n"
+            f"  Tried: STAR_GNN_DATA env var (not set)\n"
+            f"  Tried: {os.path.join(_REPO_ROOT, 'data')} (does not exist)\n"
+            f"  Tried: recursive search for base_info.csv under {_REPO_ROOT} (not found)\n\n"
+            f"Please set STAR_GNN_DATA to your data directory:\n"
+            f"  Linux/Mac:  export STAR_GNN_DATA=/path/to/data\n"
+            f"  Windows:    set STAR_GNN_DATA=C:\\path\\to\\data\n"
+            f"Or place CSV files in {os.path.join(_REPO_ROOT, 'data')}/\n"
+        )
+        raise FileNotFoundError(msg)
 
 OUTPUT_DIR = os.environ.get("STAR_GNN_RESULTS", os.path.join(_REPO_ROOT, "results"))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
