@@ -37,6 +37,8 @@ STAR-GNN provides the **first systematic empirical answer** — by converting re
 | Covtype | 6,000 | 54 | .936 | .921 | −0.015 | <0.001 |
 
 > **GNN ≠ always better.** In star-schema enterprise data, tabular models dominate. The graph provides a genuine but supplementary signal (F1 ≈ 0.50 standalone), systematically overpowered by the 57 engineered tabular features. Use the right tool for the right data.
+>
+> Metrics shown are **macro-averaged F1** from Nested 5×2 CV across 3 random seeds.
 
 
 
@@ -114,7 +116,27 @@ STAR-GNN/
 | GNN embedding + XGBoost augmentation | `src/gnn_embed_xgb.py` |
 | Any other `benchmark_*.py` | **Deprecated** — do not use; results differ from paper |
 
+> **All experiments reported in the paper use `benchmark_clean.py` as the sole entry point.** Other scripts are provided for diagnostic/exploratory use only.
 
+
+
+## Environment Variables
+
+All paths are configurable via environment variables with sensible repo-relative defaults:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `STAR_GNN_HOME` | _auto-detected from script location_ | Project root directory (normally not needed) |
+| `STAR_GNN_DATA` | `./data/` | Directory containing CSV datasets |
+| `STAR_GNN_RESULTS` | `./results/` | Directory for experiment outputs |
+
+```bash
+# Example: custom paths on a Linux server
+export STAR_GNN_HOME=/home/user/STAR-GNN
+export STAR_GNN_DATA=/mnt/datasets/enterprise
+export STAR_GNN_RESULTS=/mnt/experiments/run01
+python src/benchmark_clean.py
+```
 
 ## Quick Start
 
@@ -157,6 +179,23 @@ pip install torch numpy pandas scikit-learn scipy xgboost lightgbm matplotlib im
 export STAR_GNN_DATA="./data"          # Linux/Mac
 set STAR_GNN_DATA=.\data               # Windows
 ```
+
+#### Required columns per CSV
+
+`graph_builder_v2.py` validates column names at startup and will fail with a clear error if any are missing.
+
+| CSV File | Required | Columns |
+|----------|----------|---------|
+| `entprise_info.csv` | **yes** | `id`, `label` |
+| `base_info.csv` | **yes** | `regcap`, `reccap`, `opfrom`, `opto`, `empnum` |
+| `change_info.csv` | **yes** | `id`, `bgxmdm` |
+| `news_info.csv` | **yes** | `id`, `positive`, `negative` |
+| `tax_info.csv` | **yes** | `id`, `zsxm_dm`, `se` |
+| `annual_report_info.csv` | _optional_† | — |
+| `other_info.csv` | _optional_† | — |
+| `entprise_evaluate.csv` | _optional_† | — |
+
+> † Optional tables: missing files only print a warning. If present, they enrich the feature set but are not required for the benchmark to run.
 
 ### 3. Run Experiments
 
@@ -203,8 +242,9 @@ results/benchmark_clean/
 To exactly reproduce the paper's results:
 
 - [ ] Python 3.10+ with PyTorch ≥ 2.0
-- [ ] `pip install -r requirements.txt` (locks all dependency versions)
-- [ ] Random seed fixed at `42` (`RANDOM_SEED` in `benchmark_clean.py`)
+- [ ] `pip install -r requirements-lock.txt` (exact dependency versions; recommended)
+- [ ] Or: `pip install -r requirements.txt` (relaxed versions; may cause minor variance)
+- [ ] Global random seeds fixed at `42` for Python (`random.seed`), NumPy (`np.random.seed`), PyTorch (`torch.manual_seed`), and CUDA (`torch.cuda.manual_seed_all`)
 - [ ] Nested CV: outer 5-fold × inner 2-fold (`N_OUTER_FOLDS=5`, `N_INNER_FOLDS=2`)
 - [ ] Subsampled to 6,000 samples for public datasets (`N_SUBSAMPLE=6000`)
 - [ ] k-NN graph: `k=10`, cosine metric, row-normalized (out-degree)
