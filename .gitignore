@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Data files — keep directory, exclude actual data
+data/*.csv
+data/*.csv.gz
+data/*.pkl
+data/*.zip
+data/*.mat
+data/*.data
+data/*.test
+data/*.gz
+data/enterprise/
+data/benchmarks/
+*.zip
+*.gz
+*.mat
+*.data
+
+# Results — exclude all generated output
+results/**
+results/
+
+# Figures
+figures/
+*.png
+*.jpg
+*.jpeg
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Large model checkpoints
+checkpoints/
+*.pt
+*.pth
+
+# Logs
+*.log
