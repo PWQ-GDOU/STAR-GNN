@@ -27,18 +27,9 @@ STAR-GNN provides the **first systematic empirical answer** — by converting re
 4. **Ablation from 57D → 3D** — identify the "ceiling height" where GNN becomes competitive
 5. **Open-source release** — full pipeline from raw star-schema tables to final evaluation
 
-### Core Finding at a Glance
+### Key Insight
 
-| Dataset | Samples | Features | Tab F1 | GNN F1 | ΔF1 | p-value |
-|---------|---------|----------|--------|--------|------|---------|
-| Enterprise | 14,865 | 57 | .818 | .777 | **−0.041** | <0.001 |
-| CreditCard | 6,000 | 29 | .918 | .902 | −0.016 | <0.001 |
-| Adult/Census | 6,000 | 14 | .839 | .822 | −0.016 | <0.001 |
-| Covtype | 6,000 | 54 | .936 | .921 | −0.015 | <0.001 |
-
-> **GNN ≠ always better.** In star-schema enterprise data, tabular models dominate. The graph provides a genuine but supplementary signal (F1 ≈ 0.50 standalone), systematically overpowered by the 57 engineered tabular features. Use the right tool for the right data.
->
-> Metrics shown are **macro-averaged F1** from Nested 5×2 CV across 3 random seeds.
+> **GNN ≠ always better.** In star-schema enterprise data, tabular models can dominate when rich engineered features are available. The graph provides a supplementary signal that should be evaluated against strong tabular baselines. Detailed results and benchmarks are available in the accompanying paper.
 
 
 
