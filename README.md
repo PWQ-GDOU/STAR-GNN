@@ -7,12 +7,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Status](https://img.shields.io/badge/status-side%20project%20%2F%20software%20copyright-lightgrey.svg)]()
 
-**Author**: Wenquan Peng (个人独立完成 · 无导师参与)  
-**Affiliation**: 与任何学校 / 机构无正式项目关联  
-**成果**: 已取得一项软件著作权（软著）
-
-
-
 ## Overview
 
 **Can graph neural networks improve enterprise default prediction when rich tabular features are available?**
