@@ -5,11 +5,11 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-%E2%89%A52.0-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/status-submitted%20to%20ESWA-brightgreen.svg)]()
+[![Status](https://img.shields.io/badge/status-side%20project%20%2F%20software%20copyright-lightgrey.svg)]()
 
-**Authors**: Wenquan Peng, Wenjing Zhen, Yilin Zhen, Junwen Xie, Zhiyu Zhang (advisor)  
-**Affiliation**: College of Computer Science & Engineering, Guangdong Ocean University  
-**Paper**: Submitted to *Expert Systems with Applications* (Elsevier, JCR Q1, IF 8.3)
+**Author**: Wenquan Peng (个人独立完成 · 无导师参与)  
+**Affiliation**: 与任何学校 / 机构无正式项目关联  
+**成果**: 已取得一项软件著作权（软著），**未投稿任何期刊 / 会议**，论文工作目前仅停留在个人实验总结阶段
 
 
 
@@ -29,7 +29,7 @@ STAR-GNN provides the **first systematic empirical answer** — by converting re
 
 ### Key Insight
 
-> **GNN ≠ always better.** In star-schema enterprise data, tabular models can dominate when rich engineered features are available. The graph provides a supplementary signal that should be evaluated against strong tabular baselines. Detailed results and benchmarks are available in the accompanying paper.
+> **GNN ≠ always better.** 在星型表结构的企业数据中，当人工特征已经非常充分时，树模型等表格方法的表现反而更可靠；图只起到补强信号的作用，并且必须和强 baseline 一起公平对照才不会被它迷惑。本仓库是**个人侧项目（side project）**，全部实验、代码和结论均来自我自己独立做的整理，没有任何导师、课题组或投稿期刊参与。
 
 
 
@@ -101,13 +101,13 @@ STAR-GNN/
 
 | Scenario | Script |
 |----------|--------|
-| **Reproduce the paper** | `src/benchmark_clean.py` (one command, all experiments) |
+| **复现全部实验** | `src/benchmark_clean.py` (one command, all experiments) |
 | Build graph only (no training) | `src/graph_builder_v2.py` |
 | Ablation experiments standalone | `src/ablation_infer.py` |
 | GNN embedding + XGBoost augmentation | `src/gnn_embed_xgb.py` |
-| Any other `benchmark_*.py` | **Deprecated** — do not use; results differ from paper |
+| Any other `benchmark_*.py` | **Deprecated** — do not use; results differ from the main script |
 
-> **All experiments reported in the paper use `benchmark_clean.py` as the sole entry point.** Other scripts are provided for diagnostic/exploratory use only.
+> **本项目所有完整实验统一以 `benchmark_clean.py` 为入口。** 其它脚本仅用于诊断 / 探索性调试。
 
 
 
@@ -137,7 +137,7 @@ python src/benchmark_clean.py
 git clone https://github.com/PWQ-GDOU/STAR-GNN.git
 cd STAR-GNN
 
-# Reproduce exact paper results (pinned versions)
+# Reproduce exact project results (pinned versions)
 pip install -r requirements-lock.txt
 
 # Or install with relaxed version constraints
@@ -159,7 +159,7 @@ pip install torch numpy pandas scikit-learn scipy xgboost lightgbm matplotlib im
 - **Adult/Census**: [`sklearn.datasets.fetch_openml('adult')`](https://www.openml.org/d/1590)
 - **Covtype**: [`sklearn.datasets.fetch_covtype()`](https://archive.ics.uci.edu/ml/datasets/Covertype)
 
-**Enterprise dataset (private)** — the 4th dataset is proprietary regulatory data and **cannot be publicly shared**. The paper's results are fully reproducible for the 3 public datasets. To run with the private dataset:
+**Enterprise dataset (private)** — the 4th dataset is proprietary regulatory data and **cannot be publicly shared**. For the 3 public datasets, the project results are fully reproducible. To run with the private dataset:
 
 ```bash
 # Place your star-schema CSV files in data/enterprise/
@@ -230,7 +230,7 @@ results/benchmark_clean/
 
 ## Reproducibility Checklist
 
-To exactly reproduce the paper's results:
+To exactly reproduce this project's results:
 
 - [ ] Python 3.10+ with PyTorch ≥ 2.0
 - [ ] `pip install -r requirements-lock.txt` (exact dependency versions; recommended)
@@ -273,19 +273,23 @@ Standard CV (train/val split + test holdout) causes **HP search information leak
 
 
 
-## Citation
+## Citation / 引用声明
+
+如果本仓库对你有帮助，可以按下面的方式引用它（非学术论文引用，仅供 GitHub / 个人项目参考使用）：
 
 ```bibtex
-@article{peng2026stargnn,
-  title     = {{STAR-GNN}: {From} Star-Schema Tables to Graph Networks
-               for Enterprise Default Detection — When Does the Graph Help?},
-  author    = {Peng, Wenquan and Zhen, Wenjing and Zhen, Yilin
-               and Xie, Junwen and Zhang, Zhiyu},
-  journal   = {Expert Systems with Applications},
-  year      = {2026},
-  note      = {Under review}
+@misc{peng2026stargnn,
+  title  = {{STAR-GNN}: From Star-Schema Tables to Graph Networks
+            for Enterprise Default Detection — When Does the Graph Help?},
+  author = {Peng, Wenquan},
+  year   = {2026},
+  note   = {Personal side project. No advisor / no journal submission.
+            A software copyright (软著) has been registered.},
+  url    = {https://github.com/PWQ-GDOU/STAR-GNN}
 }
 ```
+
+> **About the author**: 本项目从选题、代码实现、实验设计到文档撰写，全部由 **Wenquan Peng 一人独立完成**；无任何老师 / 课题组 / 期刊参与；目前仅以 GitHub 仓库形式开源，并登记了一项软件著作权（软著）。不存在正式发表或在审的学术论文。
 
 
 
@@ -322,7 +326,7 @@ Then disable `device='gpu'` in the LGBM config for CPU-only.
 </details>
 
 <details>
-<summary><b>Results differ slightly from paper</b></summary>
+<summary><b>Results differ slightly from these runs</b></summary>
 
 Minor variance (±0.002 F1) is expected due to floating-point behavior across PyTorch/XGBoost versions and OS-dependent `StratifiedKFold` ordering. Set `RANDOM_SEED=42` and run `benchmark_clean.py` as-is for maximum reproducibility.
 </details>
