@@ -17,7 +17,7 @@
 
 **Can graph neural networks improve enterprise default prediction when rich tabular features are available?**
 
-STAR-GNN provides the **first systematic empirical answer** — by converting relational star-schema data into k-NN feature-similarity graphs and rigorously benchmarking GNNs against tree-based models across four real-world datasets, we discover the **Feature Ceiling Effect**: tabular features reach near-perfect performance (AUC > 0.99), leaving virtually no headroom for graph-based methods.
+STAR-GNN provides an **empirical analysis** — by converting relational star-schema data into k-NN feature-similarity graphs and rigorously benchmarking GNNs against tree-based models across four real-world datasets, we discover the **Feature Ceiling Effect**: tabular features reach near-perfect performance (AUC > 0.99), leaving virtually no headroom for graph-based methods.
 
 ### Key Contributions
 
@@ -29,7 +29,7 @@ STAR-GNN provides the **first systematic empirical answer** — by converting re
 
 ### Key Insight
 
-> **GNN ≠ always better.** 在星型表结构的企业数据中，当人工特征已经非常充分时，树模型等表格方法的表现反而更可靠；图只起到补强信号的作用，并且必须和强 baseline 一起公平对照才不会被它迷惑。本仓库是**个人侧项目（side project）**，全部实验、代码和结论均来自我自己独立做的整理，没有任何导师、课题组或投稿期刊参与。
+> **GNN ≠ always better.** In star-schema enterprise data, when engineered features are rich, tabular models (like XGBoost) can dominate. The graph provides supplementary signals that must be evaluated against strong tabular baselines. *(Note: This is a personal side project independently completed by the author, with a registered software copyright. No advisor or journal involved.)*
 
 
 
@@ -87,7 +87,7 @@ STAR-GNN/
 │   ├── gnn_experiment.py         Initial GNN vs baseline experiments (reproduced in benchmark_clean)
 │   ├── gnn_embed_xgb.py          GNN embedding → XGBoost augmentation experiments
 │   ├── graph_builder.py          Earlier graph builder (Jaccard-based, deprecated)
-│   └── legacy/                   ⚠ DO NOT USE — contains bugs (wrong KNN normalization, HP search leakage)
+│   └── legacy/                   Initial experimental scripts (kept for archive, not used in final results)
 │
 ├── results/                      ★ Output directory (created on first run)
 ├── figures/                      ★ Generated plots
@@ -289,7 +289,7 @@ Standard CV (train/val split + test holdout) causes **HP search information leak
 }
 ```
 
-> **About the author**: 本项目从选题、代码实现、实验设计到文档撰写，全部由 **Wenquan Peng 一人独立完成**；无任何老师 / 课题组 / 期刊参与；目前仅以 GitHub 仓库形式开源，并登记了一项软件著作权（软著）。不存在正式发表或在审的学术论文。
+> **About the author**: This project, including topic selection, coding, experimental design, and documentation, was entirely completed independently by **Wenquan Peng**. No advisors, research groups, or journals were involved. It is open-sourced solely as a GitHub repository with a registered software copyright in China (软著). There is no formal publication or paper under review.
 
 
 
